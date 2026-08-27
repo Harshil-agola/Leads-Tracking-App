@@ -176,3 +176,45 @@
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+.note-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.note-action-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.2rem 0.35rem;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.note-action-btn:hover {
+  color: var(--text-primary);
+  background: var(--border-color);
+}
+
+.note-action-btn.delete-btn:hover {
+  color: #ef4444;
+}
+
+.note-edit-box {
+  margin-top: 0.5rem;
+}
+
+.note-edit-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}

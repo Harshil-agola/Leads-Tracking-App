@@ -4,6 +4,8 @@ export const API_ROUTES = {
   LEADS: '',
   LEAD_BY_ID: (id: string | number) => `/${id}`,
   LEAD_NOTES: (id: string | number) => `/${id}/notes`,
+  LEAD_NOTE_BY_ID: (leadId: string | number, noteId: string | number) =>
+    `/${leadId}/notes/${noteId}`,
 } as const;
 
 export const AUTH_ROUTES = {

@@ -29,6 +29,13 @@ export const LeadDetailPage: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [editNoteContent, setEditNoteContent] = useState('');
+  const [isSavingNoteEdit, setIsSavingNoteEdit] = useState(false);
+
+  const [deletingNoteId, setDeletingNoteId] = useState<number | null>(null);
+  const [isDeletingNote, setIsDeletingNote] = useState(false);
+
   const {
     register: registerNote,
     handleSubmit: handleSubmitNote,
@@ -104,6 +111,56 @@ export const LeadDetailPage: React.FC = () => {
       resetNote({ content: '' });
     } catch (err: unknown) {
       alert((err as Error).message || 'Failed to add note');
+    }
+  };
+
+  const handleStartEditNote = (noteId: number, currentContent: string) => {
+    setEditingNoteId(noteId);
+    setEditNoteContent(currentContent);
+  };
+
+  const handleSaveNoteEdit = async (noteId: number) => {
+    if (!id || !editNoteContent.trim()) return;
+
+    setIsSavingNoteEdit(true);
+    try {
+      const updatedNote = await api.updateNote(id, noteId, editNoteContent.trim());
+      setLead((prev) =>
+        prev
+          ? {
+              ...prev,
+              notes: (prev.notes || []).map((n) => (n.id === noteId ? updatedNote : n)),
+            }
+          : null
+      );
+      setEditingNoteId(null);
+      setEditNoteContent('');
+    } catch (err: unknown) {
+      alert((err as Error).message || 'Failed to update note');
+    } finally {
+      setIsSavingNoteEdit(false);
+    }
+  };
+
+  const handleConfirmDeleteNote = async () => {
+    if (!id || !deletingNoteId) return;
+
+    setIsDeletingNote(true);
+    try {
+      await api.deleteNote(id, deletingNoteId);
+      setLead((prev) =>
+        prev
+          ? {
+              ...prev,
+              notes: (prev.notes || []).filter((n) => n.id !== deletingNoteId),
+            }
+          : null
+      );
+      setDeletingNoteId(null);
+    } catch (err: unknown) {
+      alert((err as Error).message || 'Failed to delete note');
+    } finally {
+      setIsDeletingNote(false);
     }
   };
 
@@ -248,8 +305,60 @@ export const LeadDetailPage: React.FC = () => {
               <div key={note.id} className="note-item">
                 <div className="note-header">
                   <span className="note-date">{formatDate(note.createdAt)}</span>
+                  <div className="note-actions">
+                    <button
+                      type="button"
+                      className="note-action-btn"
+                      onClick={() => handleStartEditNote(note.id, note.content)}
+                      title="Edit note"
+                      aria-label="Edit note"
+                    >
+                      <Pencil size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      className="note-action-btn delete-btn"
+                      onClick={() => setDeletingNoteId(note.id)}
+                      title="Delete note"
+                      aria-label="Delete note"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
                 </div>
-                <div className="note-content">{note.content}</div>
+
+                {editingNoteId === note.id ? (
+                  <div className="note-edit-box">
+                    <textarea
+                      className="form-textarea"
+                      rows={3}
+                      value={editNoteContent}
+                      onChange={(e) => setEditNoteContent(e.target.value)}
+                      disabled={isSavingNoteEdit}
+                    />
+                    <div className="note-edit-actions">
+                      <Button
+                        variant="secondary"
+                        onClick={() => {
+                          setEditingNoteId(null);
+                          setEditNoteContent('');
+                        }}
+                        disabled={isSavingNoteEdit}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="primary"
+                        onClick={() => handleSaveNoteEdit(note.id)}
+                        disabled={!editNoteContent.trim() || isSavingNoteEdit}
+                      >
+                        {isSavingNoteEdit ? 'Saving...' : 'Save'}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="note-content">{note.content}</div>
+                )}
               </div>
             ))
           )}
@@ -266,6 +375,18 @@ export const LeadDetailPage: React.FC = () => {
         isLoading={isDeleting}
         onConfirm={handleConfirmDelete}
         onClose={() => setIsDeleteModalOpen(false)}
+      />
+
+      <Modal
+        isOpen={deletingNoteId !== null}
+        title="Delete Note"
+        message="Are you sure you want to delete this note? This action cannot be undone."
+        confirmText="Delete Note"
+        cancelText="Cancel"
+        variant="danger"
+        isLoading={isDeletingNote}
+        onConfirm={handleConfirmDeleteNote}
+        onClose={() => setDeletingNoteId(null)}
       />
     </div>
   );

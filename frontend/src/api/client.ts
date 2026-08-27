@@ -87,6 +87,30 @@ export const api = {
     );
     return response.data;
   },
+
+  async updateNote(
+    leadId: string | number,
+    noteId: string | number,
+    content: string
+  ): Promise<Note> {
+    const response = await request<{ success: boolean; data: Note }>(
+      API_ROUTES.LEAD_NOTE_BY_ID(leadId, noteId),
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ content }),
+      }
+    );
+    return response.data;
+  },
+
+  async deleteNote(leadId: string | number, noteId: string | number): Promise<{ message: string }> {
+    return request<{ success: boolean; message: string }>(
+      API_ROUTES.LEAD_NOTE_BY_ID(leadId, noteId),
+      {
+        method: 'DELETE',
+      }
+    );
+  },
 };
 
 export default api;
