@@ -150,3 +150,31 @@ http://localhost:8080/api/leads
   "message": "Lead with this email already exists"
 }
 ```
+
+---
+
+### 4. Delete a Lead
+- **`DELETE /api/leads/:id`**
+- Deletes a lead by ID (and automatically cascades to delete all associated notes).
+
+**Example curl:**
+```bash
+DELETE http://localhost:8080/api/leads/1
+```
+
+**Success Response (`200`):**
+```json
+{
+  "success": true,
+  "message": "Lead deleted successfully"
+}
+```
+
+**Not Found Response (`404`):**
+```json
+{
+  "success": false,
+  "message": "Lead not found"
+}
+```
+

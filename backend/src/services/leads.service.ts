@@ -94,6 +94,22 @@ export class LeadsService {
 
 		return lead;
 	}
+
+	deleteLead(id: number) {
+		const existing = db
+			.prepare('SELECT id FROM leads WHERE id = ?')
+			.get(id);
+
+		if (!existing) {
+			const error = new Error('Lead not found');
+			(error as Error & { status?: number }).status = 404;
+			throw error;
+		}
+
+		db.prepare('DELETE FROM leads WHERE id = ?').run(id);
+
+		return { id };
+	}
 }
 
 export const leadsService = new LeadsService();

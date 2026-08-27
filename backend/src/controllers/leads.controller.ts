@@ -54,6 +54,39 @@ export class LeadsController {
 			});
 		}
 	};
+
+	deleteLead = (req: Request, res: Response) => {
+		try {
+			const id = Number(req.params.id);
+
+			if (!id || Number.isNaN(id)) {
+				return res.status(400).json({
+					success: false,
+					message: 'Invalid lead ID',
+				});
+			}
+
+			leadsService.deleteLead(id);
+
+			return res.status(200).json({
+				success: true,
+				message: 'Lead deleted successfully',
+			});
+		} catch (err) {
+			if ((err as Error & { status?: number })?.status === 404) {
+				return res.status(404).json({
+					success: false,
+					message: (err as Error).message,
+				});
+			}
+
+			console.error('delete lead controller error:', err);
+			return res.status(500).json({
+				success: false,
+				message: 'Internal server error',
+			});
+		}
+	};
 }
 
 export const leadsController = new LeadsController();
