@@ -133,11 +133,11 @@ http://localhost:8080/api/leads
 ```json
 {
   "success": false,
-  "message": "Invalid email address",
+  "message": "Invalid email address format (e.g. user@example.com)",
   "errors": [
     {
       "field": "email",
-      "message": "Invalid email address"
+      "message": "Invalid email address format (e.g. user@example.com)"
     }
   ]
 }
@@ -177,4 +177,37 @@ DELETE http://localhost:8080/api/leads/1
   "message": "Lead not found"
 }
 ```
+---
+
+### 5. Update a Lead
+`PATCH /api/leads/:id`
+
+Update one or more fields of an existing lead (`name`, `email`, `phone`, `status`).
+
+**Request body:**
+```json
+{
+  "status": "contacted",
+  "phone": "+1 (555) 999-8888"
+}
+```
+
+**Success Response (`200`):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "Alice Johnson",
+    "email": "alice.johnson@techcorp.io",
+    "phone": "+1 (555) 999-8888",
+    "status": "contacted",
+    "createdAt": "2026-08-27 10:00:00",
+    "updatedAt": "2026-08-27 10:58:30"
+  }
+}
+```
+
+---
+
 

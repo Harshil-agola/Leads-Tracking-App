@@ -4,7 +4,7 @@ import type {
 	Lead,
 	LeadWithNotesCount,
 } from '../types/index.js';
-import { createLeadSchema } from '../validations/index.js';
+import { createLeadSchema, updateLeadSchema } from '../validations/index.js';
 
 export class LeadsService {
 	getLeads(params: GetLeadsParams = {}) {
@@ -66,7 +66,7 @@ export class LeadsService {
 		};
 	}
 
-	createLead(data: unknown) {
+	createLead(data: unknown | Lead) {
 		const validated = createLeadSchema.parse(data);
 
 		const existing = db
@@ -91,6 +91,69 @@ export class LeadsService {
 				validated.phone || null,
 				validated.status,
 			) as unknown as Lead;
+
+		return lead;
+	}
+
+	updateLead(id: number, data: unknown | Lead) {
+		const validated = updateLeadSchema.parse(data);
+
+		const existing = db
+			.prepare('SELECT id FROM leads WHERE id = ?')
+			.get(id);
+
+		if (!existing) {
+			const error = new Error('Lead not found');
+			(error as Error & { status?: number }).status = 404;
+			throw error;
+		}
+
+		if (validated.email) {
+			const duplicate = db
+				.prepare('SELECT id FROM leads WHERE email = ? AND id != ?')
+				.get(validated.email, id);
+
+			if (duplicate) {
+				const error = new Error('Lead with this email already exists');
+				(error as Error & { status?: number }).status = 409;
+				throw error;
+			}
+		}
+
+		const updates: string[] = [];
+		const values: (string | number | null)[] = [];
+
+		if (validated.name !== undefined) {
+			updates.push('name = ?');
+			values.push(validated.name);
+		}
+
+		if (validated.email !== undefined) {
+			updates.push('email = ?');
+			values.push(validated.email);
+		}
+
+		if (validated.phone !== undefined) {
+			updates.push('phone = ?');
+			values.push(validated.phone);
+		}
+
+		if (validated.status !== undefined) {
+			updates.push('status = ?');
+			values.push(validated.status);
+		}
+
+		updates.push("updatedAt = datetime('now')");
+		values.push(id);
+
+		const lead = db
+			.prepare(
+				`UPDATE leads
+				SET ${updates.join(', ')}
+				WHERE id = ?
+				RETURNING *`,
+			)
+			.get(...values) as unknown as Lead;
 
 		return lead;
 	}
