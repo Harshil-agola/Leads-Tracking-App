@@ -1,5 +1,10 @@
 import { db } from '../config/db.js';
-import type { GetLeadsParams, LeadWithNotesCount } from '../types/index.js';
+import type {
+	GetLeadsParams,
+	Lead,
+	LeadWithNotesCount,
+} from '../types/index.js';
+import { createLeadSchema } from '../validations/index.js';
 
 export class LeadsService {
 	getLeads(params: GetLeadsParams = {}) {
@@ -59,6 +64,35 @@ export class LeadsService {
 				totalPages: Math.ceil(total / limit) || 1,
 			},
 		};
+	}
+
+	createLead(data: unknown) {
+		const validated = createLeadSchema.parse(data);
+
+		const existing = db
+			.prepare('SELECT id FROM leads WHERE email = ?')
+			.get(validated.email);
+
+		if (existing) {
+			const error = new Error('Lead with this email already exists');
+			(error as Error & { status?: number }).status = 409;
+			throw error;
+		}
+
+		const lead = db
+			.prepare(
+				`INSERT INTO leads (name, email, phone, status)
+				VALUES (?, ?, ?, ?)
+				RETURNING *`,
+			)
+			.get(
+				validated.name,
+				validated.email,
+				validated.phone || null,
+				validated.status,
+			) as unknown as Lead;
+
+		return lead;
 	}
 }
 
