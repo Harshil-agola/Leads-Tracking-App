@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+
+
+.env
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
