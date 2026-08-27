@@ -5,7 +5,10 @@ const router: Router = Router();
 
 router.get('/', leadsController.getLeads);
 router.get('/:id', leadsController.getLeadById);
+router.get('/:id/notes', leadsController.getLeadNotes);
+
 router.post('/', leadsController.createLead);
+router.post('/:id/notes', leadsController.addNote);
 router.patch('/:id', leadsController.updateLead);
 router.delete('/:id', leadsController.deleteLead);
 

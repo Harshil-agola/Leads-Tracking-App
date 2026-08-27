@@ -62,3 +62,13 @@ export const updateLeadSchema = z
 	});
 
 export type UpdateLeadInput = z.infer<typeof updateLeadSchema>;
+
+export const createNoteSchema = z.object({
+	content: z
+		.string({ error: 'Content is required' })
+		.trim()
+		.min(1, 'Content cannot be empty')
+		.max(1000, 'Note cannot exceed 1000 characters'),
+});
+
+export type CreateNoteInput = z.infer<typeof createNoteSchema>;

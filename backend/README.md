@@ -134,6 +134,60 @@ Fetch a single lead by ID along with all its attached notes.
 }
 ```
 
+#### `GET /api/leads/:id/notes`
+Fetch all notes attached to a specific lead.
+
+**Success Response (`200`):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "leadId": 1,
+      "content": "Inquired via website contact form about enterprise pricing.",
+      "createdAt": "2026-08-27 10:00:00",
+      "updatedAt": "2026-08-27 10:00:00"
+    }
+  ]
+}
+```
+
+**Not Found Response (`404`):**
+```json
+{
+  "success": false,
+  "message": "Lead not found"
+}
+```
+
+#### `POST /api/leads/:id/notes`
+Add a new note to a specific lead.
+```
+http://localhost:8080/api/leads/1/notes
+```
+
+**Request body:**
+```json
+{
+  "content": "Client requested custom pricing."
+}
+```
+
+**Success Response (`201`):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 6,
+    "leadId": 1,
+    "content": "Client requested custom pricing.",
+    "createdAt": "2026-08-27 11:25:00",
+    "updatedAt": "2026-08-27 11:25:00"
+  }
+}
+```
+
 #### `POST /api/leads`
 Create a new lead.
 ```

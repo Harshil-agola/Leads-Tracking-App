@@ -53,6 +53,81 @@ export class LeadsController {
 		}
 	};
 
+	getLeadNotes = (req: Request, res: Response) => {
+		try {
+			const id = Number(req.params.id);
+
+			if (!id || Number.isNaN(id)) {
+				return res.status(400).json({
+					success: false,
+					message: 'Invalid lead ID',
+				});
+			}
+
+			const result = leadsService.getLeadNotes(id);
+
+			return res.status(200).json({
+				success: true,
+				data: result,
+			});
+		} catch (err) {
+			if ((err as Error & { status?: number })?.status === 404) {
+				return res.status(404).json({
+					success: false,
+					message: (err as Error).message,
+				});
+			}
+
+			return res.status(500).json({
+				success: false,
+				message: 'Internal server error',
+			});
+		}
+	};
+
+	addNote = (req: Request, res: Response) => {
+		try {
+			const id = Number(req.params.id);
+
+			if (!id || Number.isNaN(id)) {
+				return res.status(400).json({
+					success: false,
+					message: 'Invalid lead ID',
+				});
+			}
+
+			const result = leadsService.addNote(id, req.body);
+
+			return res.status(201).json({
+				success: true,
+				data: result,
+			});
+		} catch (err) {
+			if (err instanceof ZodError) {
+				return res.status(400).json({
+					success: false,
+					message: err.issues[0]?.message || 'Validation error',
+					errors: err.issues.map((issue) => ({
+						field: issue.path.join('.'),
+						message: issue.message,
+					})),
+				});
+			}
+
+			if ((err as Error & { status?: number })?.status === 404) {
+				return res.status(404).json({
+					success: false,
+					message: (err as Error).message,
+				});
+			}
+
+			return res.status(500).json({
+				success: false,
+				message: 'Internal server error',
+			});
+		}
+	};
+
 	createLead = (req: Request, res: Response) => {
 		try {
 			const result = leadsService.createLead(req.body);
@@ -170,7 +245,6 @@ export class LeadsController {
 			});
 		}
 	};
-
 }
 
 export const leadsController = new LeadsController();

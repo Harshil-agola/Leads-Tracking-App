@@ -6,7 +6,11 @@ import type {
 	LeadWithNotesCount,
 	Note,
 } from '../types/index.js';
-import { createLeadSchema, updateLeadSchema } from '../validations/index.js';
+import {
+	createLeadSchema,
+	createNoteSchema,
+	updateLeadSchema,
+} from '../validations/index.js';
 
 export class LeadsService {
 	getLeads(params: GetLeadsParams = {}) {
@@ -121,9 +125,7 @@ export class LeadsService {
 	updateLead(id: number, data: unknown | Lead) {
 		const validated = updateLeadSchema.parse(data);
 
-		const existing = db
-			.prepare('SELECT id FROM leads WHERE id = ?')
-			.get(id);
+		const existing = db.prepare('SELECT id FROM leads WHERE id = ?').get(id);
 
 		if (!existing) {
 			const error = new Error('Lead not found');
@@ -182,9 +184,7 @@ export class LeadsService {
 	}
 
 	deleteLead(id: number) {
-		const existing = db
-			.prepare('SELECT id FROM leads WHERE id = ?')
-			.get(id);
+		const existing = db.prepare('SELECT id FROM leads WHERE id = ?').get(id);
 
 		if (!existing) {
 			const error = new Error('Lead not found');
@@ -195,6 +195,48 @@ export class LeadsService {
 		db.prepare('DELETE FROM leads WHERE id = ?').run(id);
 
 		return { id };
+	}
+
+	getLeadNotes(leadId: number): Note[] {
+		const existing = db
+			.prepare('SELECT id FROM leads WHERE id = ?')
+			.get(leadId);
+
+		if (!existing) {
+			const error = new Error('Lead not found');
+			(error as Error & { status?: number }).status = 404;
+			throw error;
+		}
+
+		const notes = db
+			.prepare('SELECT * FROM notes WHERE leadId = ? ORDER BY id DESC')
+			.all(leadId) as unknown as Note[];
+
+		return notes;
+	}
+
+	addNote(leadId: number, data: unknown): Note {
+		const validated = createNoteSchema.parse(data);
+
+		const existing = db
+			.prepare('SELECT id FROM leads WHERE id = ?')
+			.get(leadId);
+
+		if (!existing) {
+			const error = new Error('Lead not found');
+			(error as Error & { status?: number }).status = 404;
+			throw error;
+		}
+
+		const note = db
+			.prepare(
+				`INSERT INTO notes (leadId, content)
+				VALUES (?, ?)
+				RETURNING *`,
+			)
+			.get(leadId, validated.content) as unknown as Note;
+
+		return note;
 	}
 }
 
