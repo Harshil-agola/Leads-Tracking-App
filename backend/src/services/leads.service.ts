@@ -2,7 +2,9 @@ import { db } from '../config/db.js';
 import type {
 	GetLeadsParams,
 	Lead,
+	LeadWithNotes,
 	LeadWithNotesCount,
+	Note,
 } from '../types/index.js';
 import { createLeadSchema, updateLeadSchema } from '../validations/index.js';
 
@@ -63,6 +65,27 @@ export class LeadsService {
 				total,
 				totalPages: Math.ceil(total / limit) || 1,
 			},
+		};
+	}
+
+	getLeadById(id: number): LeadWithNotes {
+		const lead = db
+			.prepare('SELECT * FROM leads WHERE id = ?')
+			.get(id) as unknown as Lead | undefined;
+
+		if (!lead) {
+			const error = new Error('Lead not found');
+			(error as Error & { status?: number }).status = 404;
+			throw error;
+		}
+
+		const notes = db
+			.prepare('SELECT * FROM notes WHERE leadId = ? ORDER BY id DESC')
+			.all(id) as unknown as Note[];
+
+		return {
+			...lead,
+			notes,
 		};
 	}
 

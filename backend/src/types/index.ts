@@ -14,6 +14,10 @@ export interface LeadWithNotesCount extends Lead {
 	notesCount: number;
 }
 
+export interface LeadWithNotes extends Lead {
+	notes: Note[];
+}
+
 export interface GetLeadsParams {
 	search?: string;
 	status?: string;

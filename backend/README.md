@@ -98,6 +98,42 @@ Fetch paginated leads with optional search, status filtering, and notes count.
 "http://localhost:8080/api/leads?search=john&status=contacted&page=1&limit=5"
 ```
 
+#### `GET /api/leads/:id`
+Fetch a single lead by ID along with all its attached notes.
+
+**Success Response (`200`):**
+```json
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "name": "Alice Johnson",
+    "email": "alice.johnson@techcorp.io",
+    "phone": "+1 (555) 234-5678",
+    "status": "new",
+    "createdAt": "2026-08-27 10:00:00",
+    "updatedAt": "2026-08-27 10:00:00",
+    "notes": [
+      {
+        "id": 1,
+        "leadId": 1,
+        "content": "Inquired via website contact form about enterprise pricing.",
+        "createdAt": "2026-08-27 10:00:00",
+        "updatedAt": "2026-08-27 10:00:00"
+      }
+    ]
+  }
+}
+```
+
+**Not Found Response (`404`):**
+```json
+{
+  "success": false,
+  "message": "Lead not found"
+}
+```
+
 #### `POST /api/leads`
 Create a new lead.
 ```
@@ -110,7 +146,7 @@ http://localhost:8080/api/leads
   "name": "Sarah Connor",
   "email": "sarah@example.com",
   "phone": "+1 555-0199"
-  }'
+}
 ```
 
 **Success Response (`201`):**
