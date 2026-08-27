@@ -1,19 +1,15 @@
-import { config as dotEnvConfig } from "dotenv";
+import { config as dotEnvConfig } from 'dotenv';
 
 export interface EnvTypes {
-  PORT: number;
-  NODE_ENV: "development" | "production" | string;
-  FRONTEND_ORIGIN: string
+	PORT: number;
+	NODE_ENV: 'development' | 'production' | string;
+	FRONTEND_ORIGIN: string;
 }
 
-
-dotEnvConfig({
-  debug: process.env.NODE_ENV === "development",
-});
-
+dotEnvConfig();
 
 export const EnvConfig: EnvTypes = {
-  NODE_ENV: process.env.NODE_ENV || "development",
-  PORT: Number(process.env.PORT) || 8080,
-  FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN || "http://localhost:5173",
-}
+	NODE_ENV: process.env.NODE_ENV || 'development',
+	PORT: Number(process.env.PORT) || 8080,
+	FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN || 'http://localhost:5173',
+};
