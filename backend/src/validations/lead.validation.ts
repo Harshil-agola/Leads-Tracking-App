@@ -81,3 +81,13 @@ export const createNoteSchema = z.object({
 });
 
 export type CreateNoteInput = z.infer<typeof createNoteSchema>;
+
+export const updateNoteSchema = z.object({
+	content: z
+		.string({ error: 'Content is required' })
+		.trim()
+		.min(1, 'Content cannot be empty')
+		.max(1000, 'Note cannot exceed 1000 characters'),
+});
+
+export type UpdateNoteInput = z.infer<typeof updateNoteSchema>;

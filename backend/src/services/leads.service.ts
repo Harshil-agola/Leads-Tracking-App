@@ -10,6 +10,7 @@ import {
 	createLeadSchema,
 	createNoteSchema,
 	updateLeadSchema,
+	updateNoteSchema,
 } from '../validations/index.js';
 
 export class LeadsService {
@@ -237,6 +238,63 @@ export class LeadsService {
 			.get(leadId, validated.content) as unknown as Note;
 
 		return note;
+	}
+
+	updateNote(noteId: number, data: unknown, leadId?: number): Note {
+		const validated = updateNoteSchema.parse(data);
+
+		let existing: { id: number; leadId: number } | undefined;
+		if (leadId) {
+			existing = db
+				.prepare('SELECT id, leadId FROM notes WHERE id = ? AND leadId = ?')
+				.get(noteId, leadId) as unknown as
+				| { id: number; leadId: number }
+				| undefined;
+		} else {
+			existing = db
+				.prepare('SELECT id, leadId FROM notes WHERE id = ?')
+				.get(noteId) as unknown as { id: number; leadId: number } | undefined;
+		}
+
+		if (!existing) {
+			const error = new Error('Note not found');
+			(error as Error & { status?: number }).status = 404;
+			throw error;
+		}
+
+		const note = db
+			.prepare(
+				`UPDATE notes
+				SET content = ?, updatedAt = datetime('now')
+				WHERE id = ?
+				RETURNING *`,
+			)
+			.get(validated.content, noteId) as unknown as Note;
+
+		return note;
+	}
+
+	deleteNote(noteId: number, leadId?: number): { id: number } {
+		let existing: { id: number } | undefined;
+		if (leadId) {
+			existing = db
+				.prepare('SELECT id FROM notes WHERE id = ? AND leadId = ?')
+				.get(noteId, leadId) as unknown as { id: number } | undefined;
+		} else {
+			existing = db
+				.prepare('SELECT id FROM notes WHERE id = ?')
+				.get(noteId) as unknown as { id: number } | undefined;
+		}
+
+		if (!existing) {
+			const error = new Error('Note not found');
+			(error as Error & { status?: number }).status = 404;
+			throw error;
+		}
+
+		db.prepare('DELETE FROM notes WHERE id = ?').run(noteId);
+
+		return { id: noteId };
 	}
 }
 
