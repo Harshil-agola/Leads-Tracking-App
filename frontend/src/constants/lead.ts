@@ -1,9 +1,8 @@
 import type { SelectOption } from '../components/common/Select';
 import type { LeadStatus } from '../types/lead';
 
-export const API_BASE_URL: string = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api/leads`
-  : '/api/leads';
+export const SERVER_BASE_URL: string = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+export const API_BASE_URL: string = `${SERVER_BASE_URL}/api/leads`;
 
 export const LEAD_STATUSES: readonly LeadStatus[] = [
   'new',

@@ -12,12 +12,13 @@ import type {
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
 
-  const headers = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(options?.headers || {}),
+    ...((options?.headers as Record<string, string>) || {}),
   };
 
   const response = await fetch(url, {
+    credentials: 'include',
     ...options,
     headers,
   });

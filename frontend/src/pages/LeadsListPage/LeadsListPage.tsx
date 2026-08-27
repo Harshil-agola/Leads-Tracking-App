@@ -1,4 +1,15 @@
-import { ChevronLeft, ChevronRight, Eye, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  LogOut,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  User,
+  X,
+} from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useState, useTransition } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -14,12 +25,14 @@ import {
   TableRow,
 } from '../../components/common';
 import { APP_ROUTES, PAGINATION_LIMIT } from '../../constants';
+import { useAuth } from '../../context/AuthContext';
 import { useDebounce } from '../../hooks';
 import type { LeadWithNotesCount, PaginationMeta } from '../../types/lead';
 import { formatDate } from '../../utils';
 import './LeadsListPage.css';
 
 export const LeadsListPage: React.FC = () => {
+  const { adminEmail, logout } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const querySearch = searchParams.get('search') || '';
@@ -132,12 +145,31 @@ export const LeadsListPage: React.FC = () => {
           <h1 className="leads-title">Leads</h1>
         </div>
 
-        <Link to={APP_ROUTES.CREATE_LEAD} aria-label="Add new lead">
-          <Button variant="primary" aria-label="Add new lead">
-            <Plus size={16} />
-            Add Lead
-          </Button>
-        </Link>
+        <div className="leads-header-actions">
+          {adminEmail && (
+            <div className="user-profile-badge">
+              <User size={14} className="user-icon" />
+              <span className="user-email">{adminEmail}</span>
+              <Button
+                variant="secondary"
+                onClick={logout}
+                className="logout-btn"
+                title="Logout"
+                aria-label="Logout"
+              >
+                <LogOut size={14} />
+                Logout
+              </Button>
+            </div>
+          )}
+
+          <Link to={APP_ROUTES.CREATE_LEAD} aria-label="Add new lead">
+            <Button variant="primary" aria-label="Add new lead">
+              <Plus size={16} />
+              Add Lead
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="leads-filter-bar">

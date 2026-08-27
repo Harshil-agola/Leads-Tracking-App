@@ -2,3 +2,7 @@ allowBuilds:
   '@swc/core': false
   esbuild: false
   unrs-resolver: false
+ignoredBuiltDependencies:
+  - '@swc/core'
+  - esbuild
+  - unrs-resolver
