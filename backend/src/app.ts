@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, {
 	type Application,
@@ -7,7 +8,8 @@ import express, {
 } from 'express';
 import morgan from 'morgan';
 import { EnvConfig } from './config/index.js';
-import { leadsRoute } from './routes/index.js';
+import { authMiddleware } from './middlewares/auth.middleware.js';
+import { authRoute, leadsRoute } from './routes/index.js';
 
 const app: Application = express();
 
@@ -21,10 +23,12 @@ app.use(
 	}),
 );
 
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/api/leads', leadsRoute);
+app.use('/api/auth', authRoute);
+app.use('/api/leads', authMiddleware, leadsRoute);
 
 app.get('/health', (_req, res) => {
 	res.status(200).json({

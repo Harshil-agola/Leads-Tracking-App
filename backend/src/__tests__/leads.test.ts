@@ -1,7 +1,8 @@
 import type { Server } from 'node:http';
+import jwt from 'jsonwebtoken';
 import app from '../app.js';
 import { db } from '../config/db.js';
-
+import { EnvConfig } from '../config/env.js';
 // Interview Checker Note:
 // integration tests for the leads API — covers search, status filter, and pagination.
 // using node's built-in fetch here; supertest would be cleaner but used because Jest is mentioned in the Task.
@@ -9,8 +10,19 @@ import { db } from '../config/db.js';
 describe('Leads Search API Tests: GET /api/leads', () => {
 	let server: Server;
 	let baseUrl: string;
+	let authHeaders: Record<string, string>;
 
 	beforeAll((done) => {
+		const token = jwt.sign(
+			{ email: 'admin@example.com', role: 'admin' },
+			EnvConfig.JWT_SECRET || 'supersecret_admin_jwt_secret_key_123',
+			{ expiresIn: '1d' },
+		);
+
+		authHeaders = {
+			Cookie: `admin_token=${token}`,
+		};
+
 		db.exec(`
       DELETE FROM notes;
       DELETE FROM leads;
@@ -33,8 +45,15 @@ describe('Leads Search API Tests: GET /api/leads', () => {
 		server.close(done);
 	});
 
-	test('should return all leads with pagination metadata', async () => {
+	test('should return 401 when unauthorized', async () => {
 		const response = await fetch(`${baseUrl}/api/leads`);
+		expect(response.status).toBe(401);
+	});
+
+	test('should return all leads with pagination metadata when authenticated via JWT Cookie', async () => {
+		const response = await fetch(`${baseUrl}/api/leads`, {
+			headers: authHeaders,
+		});
 		const body = await response.json();
 
 		expect(response.status).toBe(200);
@@ -49,7 +68,9 @@ describe('Leads Search API Tests: GET /api/leads', () => {
 	});
 
 	test('should search leads by name', async () => {
-		const response = await fetch(`${baseUrl}/api/leads?search=Johnson`);
+		const response = await fetch(`${baseUrl}/api/leads?search=Johnson`, {
+			headers: authHeaders,
+		});
 		const body = await response.json();
 
 		expect(response.status).toBe(200);
@@ -67,7 +88,9 @@ describe('Leads Search API Tests: GET /api/leads', () => {
 	});
 
 	test('should search leads by email domain', async () => {
-		const response = await fetch(`${baseUrl}/api/leads?search=techcorp.io`);
+		const response = await fetch(`${baseUrl}/api/leads?search=techcorp.io`, {
+			headers: authHeaders,
+		});
 		const body = await response.json();
 
 		expect(response.status).toBe(200);
@@ -82,7 +105,9 @@ describe('Leads Search API Tests: GET /api/leads', () => {
 	});
 
 	test('should filter leads by status', async () => {
-		const response = await fetch(`${baseUrl}/api/leads?status=new`);
+		const response = await fetch(`${baseUrl}/api/leads?status=new`, {
+			headers: authHeaders,
+		});
 		const body = await response.json();
 
 		expect(response.status).toBe(200);
@@ -97,6 +122,7 @@ describe('Leads Search API Tests: GET /api/leads', () => {
 	test('should return empty list when no leads match the search term', async () => {
 		const response = await fetch(
 			`${baseUrl}/api/leads?search=nonexistent_lead_xyz_99999`,
+			{ headers: authHeaders },
 		);
 		const body = await response.json();
 

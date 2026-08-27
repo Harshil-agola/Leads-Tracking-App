@@ -1,21 +1,22 @@
 # Leads Tracking App — Backend
 
-Backend REST API for tracking leads and notes, built with Express 5, TypeScript, and Node's built-in SQLite engine.
+Backend REST API for tracking leads and notes, built with Express 5, TypeScript, Node's built-in SQLite engine, and JWT HttpOnly cookie authentication.
 
 ---
 
 ## Tech Stack
 
-- **Node.js**
+- **Node.js** (v24+)
 - **Express v5**
 - **SQLite** (using Node's native `node:sqlite` `DatabaseSync` with WAL mode enabled — zero external database driver dependencies)
 - **TypeScript**
-- **Biome** for linting and code formatting (faster alternative to ESLint & Prettier)
+- **Biome** for fast linting and formatting
+- **Docker & Docker Compose** for containerization
 - **pnpm** as package manager
 
 ---
 
-## Documentation
+## Quick Start
 
 ### 1. Install dependencies
 ```bash
@@ -25,9 +26,11 @@ pnpm install
 ### 2. Environment variables
 Create a `.env` file in the root of the backend folder:
 ```env
-PORT=8080
-NODE_ENV="development"
+PORT="8080"
 FRONTEND_ORIGIN="http://localhost:5173"
+ADMIN_EMAIL="admin@example.com"
+ADMIN_PASSWORD="admin123"
+JWT_SECRET="supersecret_admin_jwt_secret_key_123"
 ```
 
 ### 3. Seed sample data (optional)
@@ -40,6 +43,36 @@ pnpm seed:leads
 pnpm dev
 ```
 The server will run on `http://localhost:8080`.
+
+### 5. Running Tests & Linting
+```bash
+# Run Jest integration test suite
+pnpm test
+
+# Run Biome linter
+pnpm lint:fix
+
+# Format code with Biome
+pnpm format:fix
+```
+
+---
+
+## Running with Docker
+
+### Docker Compose (Recommended)
+```bash
+cd backend
+docker compose up --build
+```
+The container (`leads-api`) will be exposed on port `8080`.
+
+### Docker CLI Directly
+```bash
+cd backend
+docker build -t leads-api .
+docker run -d -p 8080:8080 --name leads-api leads-api
+```
 
 ---
 
@@ -54,7 +87,7 @@ Database is stored in a local SQLite file (`database.db`).
 
 ## API Endpoints
 
-### 1. Health Check
+### 1. Health Check & System Status
 - **`GET /health`**
 - Returns server status.
 
@@ -72,7 +105,60 @@ curl http://localhost:8080/health
 
 ---
 
-### 2. Leads
+### 2. Authentication
+
+#### `POST /api/auth/login`
+Authenticate admin user and issue an HttpOnly JWT cookie.
+
+**Request body:**
+```json
+{
+  "email": "admin@domain.com",
+  "password": "Password123!"
+}
+```
+
+**Success Response (`200`):**
+```json
+{
+  "success": true,
+  "message": "Logged in successfully",
+  "user": {
+    "email": "admin@domain.com",
+    "role": "admin"
+  }
+}
+```
+
+#### `GET /api/auth/verify`
+Verify existing session token.
+
+**Success Response (`200`):**
+```json
+{
+  "success": true,
+  "message": "Authenticated successfully",
+  "user": {
+    "email": "admin@domain.com",
+    "role": "admin"
+  }
+}
+```
+
+**Unauthorized Response (`401`):**
+```json
+{
+  "success": false,
+  "message": "Unauthorized access. Please log in."
+}
+```
+
+#### `POST /api/auth/logout`
+Clear the HttpOnly authentication session cookie.
+
+---
+
+### 3. Leads
 
 #### `GET /api/leads`
 Fetch paginated leads with optional search, status filtering, and notes count.
@@ -83,221 +169,20 @@ Fetch paginated leads with optional search, status filtering, and notes count.
 - `page` — Page number (default: `1`)
 - `limit` — Items per page (default: `10`)
 
-**Example Requests:**
-```bash
-# Get page 1
-"http://localhost:8080/api/leads?page=1&limit=10"
-
-# Search by keyword
-"http://localhost:8080/api/leads?search=alex"
-
-# Filter by status
-"http://localhost:8080/api/leads?status=qualified"
-
-# Combined filters
-"http://localhost:8080/api/leads?search=john&status=contacted&page=1&limit=5"
-```
-
 #### `GET /api/leads/:id`
-Fetch a single lead by ID along with all its attached notes.
-
-**Success Response (`200`):**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 1,
-    "name": "Alice Johnson",
-    "email": "alice.johnson@techcorp.io",
-    "phone": "+1 (555) 234-5678",
-    "status": "new",
-    "createdAt": "2026-08-27 10:00:00",
-    "updatedAt": "2026-08-27 10:00:00",
-    "notes": [
-      {
-        "id": 1,
-        "leadId": 1,
-        "content": "Inquired via website contact form about enterprise pricing.",
-        "createdAt": "2026-08-27 10:00:00",
-        "updatedAt": "2026-08-27 10:00:00"
-      }
-    ]
-  }
-}
-```
-
-**Not Found Response (`404`):**
-```json
-{
-  "success": false,
-  "message": "Lead not found"
-}
-```
-
-#### `GET /api/leads/:id/notes`
-Fetch all notes attached to a specific lead.
-
-**Success Response (`200`):**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "leadId": 1,
-      "content": "Inquired via website contact form about enterprise pricing.",
-      "createdAt": "2026-08-27 10:00:00",
-      "updatedAt": "2026-08-27 10:00:00"
-    }
-  ]
-}
-```
-
-**Not Found Response (`404`):**
-```json
-{
-  "success": false,
-  "message": "Lead not found"
-}
-```
-
-#### `POST /api/leads/:id/notes`
-Add a new note to a specific lead.
-```
-http://localhost:8080/api/leads/1/notes
-```
-
-**Request body:**
-```json
-{
-  "content": "Client requested custom pricing."
-}
-```
-
-**Success Response (`201`):**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 6,
-    "leadId": 1,
-    "content": "Client requested custom pricing.",
-    "createdAt": "2026-08-27 11:25:00",
-    "updatedAt": "2026-08-27 11:25:00"
-  }
-}
-```
+Fetch a single lead by ID along with all attached notes.
 
 #### `POST /api/leads`
 Create a new lead.
-```
-http://localhost:8080/api/leads
-```
 
-**Request body:**
-```json
-{
-  "name": "Sarah Connor",
-  "email": "sarah@example.com",
-  "phone": "+1 555-0199"
-}
-```
+#### `PATCH /api/leads/:id`
+Update fields of an existing lead (`name`, `email`, `phone`, `status`).
 
-**Success Response (`201`):**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 4,
-    "name": "Sarah Connor",
-    "email": "sarah@example.com",
-    "phone": "+1 555-0199",
-    "status": "new",
-    "createdAt": "2026-08-27 10:34:03",
-    "updatedAt": "2026-08-27 10:34:03"
-  }
-}
-```
+#### `DELETE /api/leads/:id`
+Delete a lead by ID (cascading to remove notes).
 
-**Validation Error (`400`):**
-```json
-{
-  "success": false,
-  "message": "Invalid email address format (e.g. user@example.com)",
-  "errors": [
-    {
-      "field": "email",
-      "message": "Invalid email address format (e.g. user@example.com)"
-    }
-  ]
-}
-```
+#### `GET /api/leads/:id/notes`
+Fetch notes attached to a specific lead.
 
-**Duplicate Email Error (`409`):**
-```json
-{
-  "success": false,
-  "message": "Lead with this email already exists"
-}
-```
-
----
-
-### 4. Delete a Lead
-- **`DELETE /api/leads/:id`**
-- Deletes a lead by ID (and automatically cascades to delete all associated notes).
-
-**Example curl:**
-```bash
-DELETE http://localhost:8080/api/leads/1
-```
-
-**Success Response (`200`):**
-```json
-{
-  "success": true,
-  "message": "Lead deleted successfully"
-}
-```
-
-**Not Found Response (`404`):**
-```json
-{
-  "success": false,
-  "message": "Lead not found"
-}
-```
----
-
-### 5. Update a Lead
-`PATCH /api/leads/:id`
-
-Update one or more fields of an existing lead (`name`, `email`, `phone`, `status`).
-
-**Request body:**
-```json
-{
-  "status": "contacted",
-  "phone": "+1 (555) 999-8888"
-}
-```
-
-**Success Response (`200`):**
-```json
-{
-  "success": true,
-  "data": {
-    "id": 1,
-    "name": "Alice Johnson",
-    "email": "alice.johnson@techcorp.io",
-    "phone": "+1 (555) 999-8888",
-    "status": "contacted",
-    "createdAt": "2026-08-27 10:00:00",
-    "updatedAt": "2026-08-27 10:58:30"
-  }
-}
-```
-
----
-
-
+#### `POST /api/leads/:id/notes`
+Add a new note to a lead.
