@@ -3,7 +3,7 @@ import { DatabaseSync } from 'node:sqlite';
 
 const dbName = process.env.NODE_ENV === 'test' ? ':memory:' : 'database.db';
 const dbPath =
-  dbName === ':memory:' ? ':memory:' : path.resolve(process.cwd(), dbName);
+	dbName === ':memory:' ? ':memory:' : path.resolve(process.cwd(), dbName);
 const db = new DatabaseSync(dbPath);
 
 db.exec('PRAGMA foreign_keys = ON;');
