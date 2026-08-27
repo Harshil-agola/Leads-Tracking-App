@@ -1,11 +1,5 @@
 import { db } from '../config/db.js';
-
-export interface GetLeadsParams {
-	search?: string;
-	status?: string;
-	page?: number;
-	limit?: number;
-}
+import type { GetLeadsParams, LeadWithNotesCount } from '../types/index.js';
 
 export class LeadsService {
 	getLeads(params: GetLeadsParams = {}) {
@@ -36,14 +30,12 @@ export class LeadsService {
 			whereSql = `WHERE ${filters.join(' AND ')}`;
 		}
 
-		// 1. Total count for pagination
 		const totalCount = db
 			.prepare(`SELECT COUNT(*) as total FROM leads ${whereSql}`)
 			.get(...sqlParams) as { total: number };
 
 		const total = totalCount?.total || 0;
 
-		// 2. Fetch paginated leads with joined notes count
 		const leads = db
 			.prepare(
 				`SELECT
@@ -56,7 +48,7 @@ export class LeadsService {
 				ORDER BY leads.id DESC
 				LIMIT ? OFFSET ?`,
 			)
-			.all(...sqlParams, limit, offset);
+			.all(...sqlParams, limit, offset) as unknown as LeadWithNotesCount[];
 
 		return {
 			leads,

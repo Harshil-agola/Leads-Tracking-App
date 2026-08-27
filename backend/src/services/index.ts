@@ -1,1 +1,1 @@
-export { leadsService, type GetLeadsParams } from './leads.service.js';
+export { leadsService } from './leads.service.js';
