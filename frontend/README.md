@@ -1,75 +1,82 @@
-# React + TypeScript + Vite
+# Leads Tracker - Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A minimal, accessible leads tracking interface built with React 19, TypeScript, Vite, and vanilla CSS variables.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **React 19** with TypeScript
+- **Vite** (build tool and dev server)
+- **React Hook Form** for form validation and state
+- **Lucide React** for icons
+- **Biome** for fast formatting and linting
+- **Google Fonts (Poppins)** typography
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Leads Directory**: Paginated table listing leads with name, contact details, status, and creation date.
+- **Search**: Inline debounced search filtering leads across name, email, and phone without full page reloads.
+- **Lead Creation**: Dedicated form with custom validation and server error handling.
+- **Lead Details, Inline Editing & Notes**: Full profile view where details can be edited directly in place, with the ability to append timestamped follow-up notes.
+- **Custom Modals**: Accessible confirmation popups for deleting records with escape key and backdrop dismiss support.
+- **Clean Component Architecture**: Modular component structure where each component has its own `.tsx`, `.css`, and `index.ts` entry.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Project Structure
 
 ```
+frontend/
+├── src/
+│   ├── api/              # Typed REST client and error handler
+│   ├── components/
+│   │   └── common/       # Button, Input, Select, Table, Modal
+│   ├── constants/        # Route definitions, validation rules, status options
+│   ├── hooks/            # useDebounce, usePagination, useFetch
+│   ├── pages/            # LeadsListPage, CreateLeadPage, LeadDetailPage, NotFoundPage
+│   ├── types/            # TypeScript interfaces and data models
+│   ├── App.tsx           # Router configuration
+│   ├── main.tsx          # Application entrypoint
+│   └── index.css         # Design tokens, variables, and global layout
+├── biome.json            # Biome linting and formatting configuration
+├── package.json
+└── vite.config.ts
+```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+## Getting Started
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Installation
+```bash
+pnpm install
+```
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Environment Variables
 
+Create a `.env` file in the frontend root if configuring a custom backend URL (defaults to `http://localhost:8080/api/leads`):
+
+```env
+VITE_API_URL=http://localhost:8080
+```
+
+### Development
+
+```bash
+pnpm dev
+```
+
+The app will be accessible at `http://localhost:5173`.
+
+### Production Build
+
+```bash
+pnpm build
+
+pnpm preview
+```
+
+### Linting & Formatting
+
+```bash
+pnpm lint
+
+pnpm format
+
+pnpm check
 ```
