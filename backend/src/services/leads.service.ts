@@ -115,7 +115,7 @@ export class LeadsService {
 			.get(
 				validated.name,
 				validated.email,
-				validated.phone || null,
+				validated.phone ?? null,
 				validated.status,
 			) as unknown as Lead;
 

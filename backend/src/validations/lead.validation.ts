@@ -36,7 +36,7 @@ export const createLeadSchema = z.object({
 		.min(1, 'Name cannot be empty')
 		.max(100, 'Name must be 100 characters or fewer'),
 	email: emailSchema,
-	phone: phoneSchema.optional().default(''),
+	phone: phoneSchema.nullable().optional().default(null),
 	status: z
 		.enum(['new', 'contacted', 'qualified', 'lost'], {
 			error: () => ({
@@ -66,7 +66,7 @@ export const updateLeadSchema = z
 			})
 			.optional(),
 	})
-	.refine((data) => Object.keys(data).length > 0, {
+	.refine((data) => Object.values(data).some((v) => v !== undefined), {
 		message: 'At least one field must be provided for update',
 	});
 

@@ -1,5 +1,10 @@
 import cors from 'cors';
-import express, { type Application } from 'express';
+import express, {
+	type Application,
+	type NextFunction,
+	type Request,
+	type Response,
+} from 'express';
 import morgan from 'morgan';
 import { EnvConfig } from './config/index.js';
 import { leadsRoute } from './routes/index.js';
@@ -30,6 +35,14 @@ app.get('/health', (_req, res) => {
 
 app.use((_req, res) => {
 	res.status(404).json({ message: 'Route not found' });
+});
+
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+	console.error('Unhandled error:', err);
+	res.status(500).json({
+		success: false,
+		message: 'Internal server error',
+	});
 });
 
 export default app;
