@@ -11,6 +11,24 @@ const emailSchema = z
 		'Invalid email address format (e.g. user@example.com)',
 	);
 
+// Note: Phone Regex syntext taken from the google search and docs
+const phoneRegex = /^\+?[0-9\s().-]{7,30}$/;
+
+const phoneSchema = z
+	.string()
+	.trim()
+	.max(30, 'Phone must be 30 characters or fewer')
+	.refine(
+		(val) => {
+			if (!val) return true;
+			const digits = val.replace(/\D/g, '');
+			return phoneRegex.test(val) && digits.length >= 7 && digits.length <= 15;
+		},
+		{
+			message: 'Invalid phone number format (e.g. +1 (555) 234-5678)',
+		},
+	);
+
 export const createLeadSchema = z.object({
 	name: z
 		.string({ error: 'Name is required' })
@@ -18,12 +36,7 @@ export const createLeadSchema = z.object({
 		.min(1, 'Name cannot be empty')
 		.max(100, 'Name must be 100 characters or fewer'),
 	email: emailSchema,
-	phone: z
-		.string()
-		.trim()
-		.max(30, 'Phone must be 30 characters or fewer')
-		.optional()
-		.default(''),
+	phone: phoneSchema.optional().default(''),
 	status: z
 		.enum(['new', 'contacted', 'qualified', 'lost'], {
 			error: () => ({
@@ -44,11 +57,7 @@ export const updateLeadSchema = z
 			.max(100, 'Name must be 100 characters or fewer')
 			.optional(),
 		email: emailSchema.optional(),
-		phone: z
-			.string()
-			.trim()
-			.max(30, 'Phone must be 30 characters or fewer')
-			.optional(),
+		phone: phoneSchema.optional(),
 		status: z
 			.enum(['new', 'contacted', 'qualified', 'lost'], {
 				error: () => ({
