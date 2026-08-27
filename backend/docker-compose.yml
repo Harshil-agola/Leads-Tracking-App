@@ -1,0 +1,9 @@
+services:
+  api:
+    build: .
+    container_name: leads-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      FRONTEND_ORIGIN: "${FRONTEND_ORIGIN:-http://localhost:5173}"
