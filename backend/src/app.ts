@@ -1,7 +1,8 @@
 import cors from 'cors';
 import express, { type Application } from 'express';
 import morgan from 'morgan';
-import { EnvConfig } from './config/env.js';
+import { EnvConfig } from './config/index.js';
+import { leadsRoute } from './routes/index.js';
 
 const app: Application = express();
 
@@ -17,6 +18,8 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use('/api/leads', leadsRoute);
 
 app.get('/health', (_req, res) => {
 	res.status(200).json({
