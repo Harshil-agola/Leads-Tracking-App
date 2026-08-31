@@ -25,7 +25,7 @@ export const LeadDetailPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [isEditing, setIsEditing] = useState(searchParams.get('edit') === 'true');
+  const isEditing = searchParams.get('edit') === 'true';
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -69,11 +69,14 @@ export const LeadDetailPage: React.FC = () => {
   }, [id]);
 
   const handleStartEditing = () => {
-    setIsEditing(true);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('edit', 'true');
+      return next;
+    });
   };
 
   const handleCancelEditing = () => {
-    setIsEditing(false);
     if (searchParams.get('edit')) {
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
@@ -85,7 +88,6 @@ export const LeadDetailPage: React.FC = () => {
 
   const handleEditSuccess = (updatedLead: LeadWithNotes) => {
     setLead(updatedLead);
-    setIsEditing(false);
     if (searchParams.get('edit')) {
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
